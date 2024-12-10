@@ -4,6 +4,7 @@ services:
   ports:
    - name: zabbix-trapper
      target: 10051
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_SERVER_PORT}"
      protocol: tcp
      app_protocol: zabbix-trapper
@@ -156,6 +157,7 @@ services:
   ports:
    - name: zabbix-trapper
      target: 10051
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_PROXY_SQLITE3_PORT}"
      protocol: tcp
      app_protocol: zabbix-trapper
@@ -177,6 +179,7 @@ services:
   ports:
    - name: zabbix-trapper
      target: 10051
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_PROXY_MYSQL_PORT}"
      protocol: tcp
      app_protocol: zabbix-trapper
@@ -210,11 +213,13 @@ services:
   ports:
    - name: web-http
      target: 8080
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_WEB_APACHE_HTTP_PORT}"
      protocol: tcp
      app_protocol: http
    - name: web-https
      target: 8443
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_WEB_APACHE_HTTPS_PORT}"
      protocol: tcp
      app_protocol: https
@@ -296,11 +301,13 @@ services:
   ports:
    - name: web-http
      target: 8080
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_WEB_NGINX_HTTP_PORT}"
      protocol: tcp
      app_protocol: http
    - name: web-https
      target: 8443
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_WEB_NGINX_HTTPS_PORT}"
      protocol: tcp
      app_protocol: https
@@ -390,6 +397,7 @@ services:
   ports:
    - name: zabbix-agent
      target: 10050
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_AGENT_PORT}"
      protocol: tcp
      app_protocol: zabbix-agent
@@ -436,6 +444,7 @@ services:
   ports:
    - name: zabbix-agent
      target: 10050
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_AGENT2_PORT}"
      protocol: tcp
      app_protocol: zabbix-agent
@@ -481,6 +490,7 @@ services:
   ports:
    - name: zabbix-java-gw
      target: 10052
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_JAVA_GATEWAY_PORT}"
      protocol: tcp
   restart: "${RESTART_POLICY}"
@@ -518,6 +528,7 @@ services:
   ports:
    - name: snmptrap
      target: 1162
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_SNMPTRAPS_PORT}"
      protocol: udp
      app_protocol: snmptrap
@@ -557,6 +568,7 @@ services:
   ports:
    - name: zabbix-web-service
      target: 10053
+     host_ip: ${HOST_LISTEN_IP}
      published: "${ZABBIX_WEB_SERVICE_PORT}"
      protocol: tcp
   restart: "${RESTART_POLICY}"
