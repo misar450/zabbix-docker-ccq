@@ -186,6 +186,8 @@ jobs:
             atl.mirrors.knownhost.com:80
             auth.docker.io:443
             cdn03.quay.io:443
+            cdn01.quay.io:443
+            cdn02.quay.io:443
             centos-stream-distro.1gservers.com:443
             centos-stream-distro.1gservers.com:80
             dfw.mirror.rackspace.com:443
@@ -413,7 +415,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, env.BASE_BUILD_NAME ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -676,7 +678,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
@@ -741,6 +743,8 @@ jobs:
             atl.mirrors.knownhost.com:80
             auth.docker.io:443
             cdn03.quay.io:443
+            cdn02.quay.io:443
+            cdn01.quay.io:443
             centos-stream-distro.1gservers.com:443
             centos-stream-distro.1gservers.com:80
             download.cf.centos.org:443
@@ -1041,7 +1045,7 @@ jobs:
       - name: Attest images
         if: ${{ env.AUTO_PUSH_IMAGES == 'true' }}
         id: attest
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v2
         with:
           subject-name:  ${{ format('{0}/{1}/{2}{3}', env.DOCKER_REGISTRY, env.DOCKER_REPOSITORY, env.IMAGES_PREFIX, matrix.build ) }}
           subject-digest: ${{ steps.docker_build.outputs.digest }}
