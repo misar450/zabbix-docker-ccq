@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=7.2
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG BUILD_BASE_IMAGE=zabbix-build-base:ltsc2022-agent2-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -9,14 +9,14 @@ FROM ${BUILD_BASE_IMAGE} as builder
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ARG MAJOR_VERSION=7.2
-ARG ZBX_VERSION=${MAJOR_VERSION}
+ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG ZABBIX_VERSION_RC_NUM=2400
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 ARG MONGODB_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mongodb.git
 ARG POSTGRESQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/postgresql.git
 ARG MSSQL_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/mssql.git
 ARG EMBER_PLUS_PLUGIN_SOURCES=https://git.zabbix.com/scm/ap/ember-plus.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 
 ARG ZBX_PLUGINS_VERSION=${GIT_BRANCH:-$ZBX_VERSION}
 
@@ -110,7 +110,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:SystemDrive\mssql-plugin-$env:MSSQL_PLUGIN_VERSION\mssql.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agent2.d\plugins.d; `
     mingw32-make -s clean; `
     `
-
     Write-Host ('Building Zabbix Ember+ plugin {0} version ...' -f $env:EMBER_PLUS_PLUGIN_VERSION); `
     git -c advice.detachedHead=false clone $env:EMBER_PLUS_PLUGIN_SOURCES --branch $env:EMBER_PLUS_PLUGIN_VERSION --depth 1 --single-branch $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `
     Set-Location -Path $env:SystemDrive\ember-plus-plugin-$env:EMBER_PLUS_PLUGIN_VERSION; `

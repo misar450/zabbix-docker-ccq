@@ -19,8 +19,6 @@ fi
 : ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
-# Configuration files directory
-ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZABBIX_WWW_ROOT="/usr/share/zabbix"
 # Apache main configuration file
@@ -123,8 +121,8 @@ check_db_connect() {
 
     export MYSQL_PWD="${DB_SERVER_ZBX_PASS}"
 
-    while [ ! "$(mysqladmin ping $mysql_connect_args -u ${DB_SERVER_ZBX_USER} \
-                --silent --connect_timeout=10 $ssl_opts)" ]; do
+    while [ ! "$(mariadb-admin ping $mysql_connect_args -u ${DB_SERVER_ZBX_USER} \
+                --silent --skip-ssl-verify-server-cert --connect_timeout=10 $ssl_opts)" ]; do
         echo "**** MySQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -136,16 +134,16 @@ prepare_web_server() {
     APACHE_SITES_DIR=/etc/apache2/conf.d
 
     echo "** Adding Zabbix virtual host (HTTP)"
-    if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
-        ln -sfT "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
+    if [ -f "$ZABBIX_CONF_DIR/apache.conf" ]; then
+        ln -sfT "$ZABBIX_CONF_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
     else
         echo "**** Impossible to enable HTTP virtual host"
     fi
 
     if [ -f "/etc/ssl/apache2/ssl.crt" ] && [ -f "/etc/ssl/apache2/ssl.key" ]; then
         echo "** Adding Zabbix virtual host (HTTPS)"
-        if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
-            ln -sfT "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
+        if [ -f "$ZABBIX_CONF_DIR/apache_ssl.conf" ]; then
+            ln -sfT "$ZABBIX_CONF_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
         else
             echo "**** Impossible to enable HTTPS virtual host"
         fi
@@ -218,12 +216,12 @@ prepare_zbx_web_config() {
     : ${HTTP_INDEX_FILE:="index.php"}
     sed -i \
         -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-    "$ZABBIX_ETC_DIR/apache.conf"
+    "$ZABBIX_CONF_DIR/apache.conf"
 
-    if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
+    if [ -f "$ZABBIX_CONF_DIR/apache_ssl.conf" ]; then
         sed -i \
             -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "$ZABBIX_ETC_DIR/apache_ssl.conf"
+        "$ZABBIX_CONF_DIR/apache_ssl.conf"
     fi
 
     : ${ENABLE_WEB_ACCESS_LOG:="true"}

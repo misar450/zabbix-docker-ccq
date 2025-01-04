@@ -1,14 +1,15 @@
 FROM ubuntu:noble
 
 ARG MAJOR_VERSION=7.2
-ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} ZBX_SOURCES=${ZBX_SOURCES} \
     MIBDIRS=/var/lib/mibs/ietf:/var/lib/mibs/iana:/usr/share/snmp/mibs:/var/lib/zabbix/mibs MIBS=+ALL \
     ZBX_SNMP_TRAP_DATE_FORMAT=+%Y-%m-%dT%T%z ZBX_SNMP_TRAP_FORMAT="\n" \
-    ZBX_SNMP_TRAP_USE_DNS=false
+    ZBX_SNMP_TRAP_USE_DNS=false \
+    ZABBIX_USER_HOME_DIR="/var/lib/zabbix"
 
 LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zabbix.com>" \
       org.opencontainers.image.description="Zabbix SNMP traps receiver" \
@@ -21,7 +22,8 @@ LABEL org.opencontainers.image.authors="Alexey Pustovalov <alexey.pustovalov@zab
 
 STOPSIGNAL SIGTERM
 
-RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt/,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/,sharing=locked \
     set -eux && \
     echo "#!/bin/sh\nexit 101" > /usr/sbin/policy-rc.d && \
     INSTALL_PKGS="bash \
@@ -42,21 +44,21 @@ RUN --mount=type=cache,target=/var/lib/apt/,sharing=locked \
             -g zabbix \
             --uid 1997 \
             --shell /sbin/nologin \
-            --home-dir /var/lib/zabbix/ \
+            --home-dir ${ZABBIX_USER_HOME_DIR} \
         zabbix && \
     download-mibs && \
-    mkdir -p /var/lib/zabbix && \
-    mkdir -p /var/lib/zabbix/snmptraps && \
-    mkdir -p /var/lib/zabbix/mibs && \
-    chown --quiet -R zabbix:root /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    chgrp -R 0 /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/ && \
-    chmod -R g=u /etc/snmp/ /var/lib/zabbix/ /var/tmp/ /var/run/
+    mkdir -p ${ZABBIX_USER_HOME_DIR} && \
+    mkdir -p ${ZABBIX_USER_HOME_DIR}/snmptraps && \
+    mkdir -p ${ZABBIX_USER_HOME_DIR}/mibs && \
+    chown --quiet -R zabbix:root /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
+    chgrp -R 0 /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/ && \
+    chmod -R g=u /etc/snmp/ ${ZABBIX_USER_HOME_DIR}/ /var/tmp/ /var/run/
 
 EXPOSE 1162/UDP
 
-WORKDIR /var/lib/zabbix/snmptraps/
+WORKDIR ${ZABBIX_USER_HOME_DIR}/snmptraps/
 
-VOLUME ["/var/lib/zabbix/snmptraps"]
+VOLUME ["${ZABBIX_USER_HOME_DIR}/snmptraps"]
 
 COPY ["conf/etc/logrotate.d/zabbix_snmptraps", "/etc/logrotate.d/"]
 COPY ["conf/etc/snmp/snmptrapd.conf", "/etc/snmp/"]

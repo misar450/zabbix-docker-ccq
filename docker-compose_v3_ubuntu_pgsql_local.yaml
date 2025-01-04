@@ -10,6 +10,9 @@ services:
  zabbix-build-pgsql:
   build:
    context: ./Dockerfiles/build-pgsql/${UBUNTU_OS_TAG_SHORT}
+   additional_contexts:
+    - sources=./sources/
+    - config_templates=./config_templates/
    cache_from:
     - "${UBUNTU_CACHE_FROM}"
    args:
@@ -22,6 +25,9 @@ services:
  zabbix-build-mysql:
   build:
    context: ./Dockerfiles/build-mysql/${UBUNTU_OS_TAG_SHORT}
+   additional_contexts:
+    - sources=./sources/
+    - config_templates=./config_templates/
    cache_from:
     - "${UBUNTU_CACHE_FROM}"
    args:
@@ -36,6 +42,9 @@ services:
  zabbix-build-sqlite3:
   build:
    context: ./Dockerfiles/build-sqlite3/${UBUNTU_OS_TAG_SHORT}
+   additional_contexts:
+    - sources=./sources/
+    - config_templates=./config_templates/
    cache_from:
     - "${UBUNTU_CACHE_FROM}"
    args:
@@ -241,16 +250,14 @@ services:
 networks:
   frontend:
     driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
+    enable_ipv6: "${FRONTEND_ENABLE_IPV6}"
     ipam:
       driver: "${FRONTEND_NETWORK_DRIVER}"
       config:
       - subnet: "${FRONTEND_SUBNET}"
   backend:
     driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "${BACKEND_ENABLE_IPV6}"
+    enable_ipv6: "${BACKEND_ENABLE_IPV6}"
     internal: true
     ipam:
       driver: "${BACKEND_NETWORK_DRIVER}"
@@ -258,15 +265,13 @@ networks:
       - subnet: "${BACKEND_SUBNET}"
   database:
     driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "${DATABASE_NETWORK_ENABLE_IPV6}"
+    enable_ipv6: "${DATABASE_NETWORK_ENABLE_IPV6}"
     internal: true
     ipam:
       driver: "${DATABASE_NETWORK_DRIVER}"
   tools_frontend:
     driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "${ADD_TOOLS_ENABLE_IPV6}"
+    enable_ipv6: "${ADD_TOOLS_ENABLE_IPV6}"
     ipam:
       driver: "${ADD_TOOLS_NETWORK_DRIVER}"
       config:
@@ -274,7 +279,8 @@ networks:
 
 volumes:
   snmptraps:
-#  dbsocket:
+#  mysql_socket:
+#  pgsql_socket:
 
 secrets:
   MYSQL_USER:

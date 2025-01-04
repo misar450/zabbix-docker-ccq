@@ -19,8 +19,6 @@ fi
 : ${PHP_TZ:="Europe/Riga"}
 
 # Default directories
-# Configuration files directory
-ZABBIX_ETC_DIR="/etc/zabbix"
 # Web interface www-root directory
 ZABBIX_WWW_ROOT="/usr/share/zabbix"
 # Apache main configuration file
@@ -62,7 +60,7 @@ check_variables() {
     file_env POSTGRES_USER
     file_env POSTGRES_PASSWORD
 
-    : ${DB_SERVER_HOST:="postgres-server"}
+    : ${DB_SERVER_HOST="postgres-server"}
     : ${DB_SERVER_PORT:="5432"}
 
     DB_SERVER_ZBX_USER=${POSTGRES_USER:-"zabbix"}
@@ -73,11 +71,23 @@ check_variables() {
     DB_SERVER_DBNAME=${POSTGRES_DB:-"zabbix"}
 
     : ${POSTGRES_USE_IMPLICIT_SEARCH_PATH:="false"}
+
+    if [ -n "${DB_SERVER_HOST}" ]; then
+        psql_connect_args="--host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT}"
+    else
+        psql_connect_args="--port ${DB_SERVER_PORT}"
+    fi
 }
 
 check_db_connect() {
     echo "********************"
-    echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+    if [ -n "${DB_SERVER_HOST}" ]; then
+        echo "* DB_SERVER_HOST: ${DB_SERVER_HOST}"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    else
+        echo "* DB_SERVER_HOST: Using DB socket"
+        echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
+    fi
     echo "* DB_SERVER_PORT: ${DB_SERVER_PORT}"
     echo "* DB_SERVER_DBNAME: ${DB_SERVER_DBNAME}"
     echo "* DB_SERVER_SCHEMA: ${DB_SERVER_SCHEMA}"
@@ -106,7 +116,7 @@ check_db_connect() {
         export PGSSLKEY=${ZBX_DBTLSKEYFILE}
     fi
 
-    while [ ! "$(psql --host ${DB_SERVER_HOST} --port ${DB_SERVER_PORT} --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} --list --quiet 2>/dev/null)" ]; do
+    while [ ! "$(psql $psql_connect_args --username ${DB_SERVER_ZBX_USER} --dbname ${DB_SERVER_DBNAME} --list --quiet 2>/dev/null)" ]; do
         echo "**** PostgreSQL server is not available. Waiting $WAIT_TIMEOUT seconds..."
         sleep $WAIT_TIMEOUT
     done
@@ -123,16 +133,16 @@ prepare_web_server() {
     APACHE_SITES_DIR=/etc/httpd/conf.d
 
     echo "** Adding Zabbix virtual host (HTTP)"
-    if [ -f "$ZABBIX_ETC_DIR/apache.conf" ]; then
-        ln -sfT "$ZABBIX_ETC_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
+    if [ -f "$ZABBIX_CONF_DIR/apache.conf" ]; then
+        ln -sfT "$ZABBIX_CONF_DIR/apache.conf" "$APACHE_SITES_DIR/zabbix.conf"
     else
         echo "**** Impossible to enable HTTP virtual host"
     fi
 
     if [ -f "/etc/ssl/apache2/ssl.crt" ] && [ -f "/etc/ssl/apache2/ssl.key" ]; then
         echo "** Adding Zabbix virtual host (HTTPS)"
-        if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
-            ln -sfT "$ZABBIX_ETC_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
+        if [ -f "$ZABBIX_CONF_DIR/apache_ssl.conf" ]; then
+            ln -sfT "$ZABBIX_CONF_DIR/apache_ssl.conf" "$APACHE_SITES_DIR/zabbix_ssl.conf"
         else
             echo "**** Impossible to enable HTTPS virtual host"
         fi
@@ -221,12 +231,12 @@ prepare_zbx_web_config() {
     : ${HTTP_INDEX_FILE:="index.php"}
     sed -i \
         -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-    "$ZABBIX_ETC_DIR/apache.conf"
+    "$ZABBIX_CONF_DIR/apache.conf"
 
-    if [ -f "$ZABBIX_ETC_DIR/apache_ssl.conf" ]; then
+    if [ -f "$ZABBIX_CONF_DIR/apache_ssl.conf" ]; then
         sed -i \
             -e "s/{HTTP_INDEX_FILE}/${HTTP_INDEX_FILE}/g" \
-        "$ZABBIX_ETC_DIR/apache_ssl.conf"
+        "$ZABBIX_CONF_DIR/apache_ssl.conf"
     fi
 
     : ${ENABLE_WEB_ACCESS_LOG:="true"}

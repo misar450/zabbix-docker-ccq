@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # escape=`
 ARG MAJOR_VERSION=7.2
-ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG ZBX_VERSION=${MAJOR_VERSION}.1
 ARG BUILD_BASE_IMAGE=zabbix-build-base:ltsc2022-agent-${ZBX_VERSION}
 
 FROM ${BUILD_BASE_IMAGE} as builder
@@ -11,7 +11,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 ARG MAJOR_VERSION
 ARG ZBX_VERSION
 ARG ZBX_SOURCES=https://git.zabbix.com/scm/zbx/zabbix.git
-ARG GIT_BRANCH=master
+ARG GIT_BRANCH
 ARG ZABBIX_VERSION_RC_NUM=2400
 
 ENV ZBX_SOURCES=$ZBX_SOURCES MAJOR_VERSION=$MAJOR_VERSION ZBX_VERSION=$ZBX_VERSION GIT_BRANCH=${GIT_BRANCH:-$ZBX_VERSION} `
@@ -29,6 +29,8 @@ LABEL org.opencontainers.image.title="Zabbix agent build (Windows)" `
       org.opencontainers.image.source="${ZBX_SOURCES}"
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+ADD config_templates C:\config_templates
 
 RUN Set-Location -Path $env:SystemDrive\.; `
     `
@@ -70,5 +72,6 @@ RUN Set-Location -Path $env:SystemDrive\.; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_agentd.exe $env:ZBX_OUTPUT_DIR\sbin; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_get.exe $env:ZBX_OUTPUT_DIR\bin; `
     Copy-Item -Path $env:ZBX_SOURCES_DIR\bin\win64\zabbix_sender.exe $env:ZBX_OUTPUT_DIR\bin; `
-    Copy-Item -Path $env:ZBX_SOURCES_DIR\conf\zabbix_agentd.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.conf; `
+    Copy-Item -Path $env:ZBX_SOURCES_DIR\conf\zabbix_agentd.win.conf $env:ZBX_OUTPUT_DIR\conf\zabbix_agentd.conf_template; `
+    Copy-Item -Recurse -Path $env:SystemDrive\config_templates\agent\* $env:ZBX_OUTPUT_DIR\conf\; `
     Write-Host 'Zabbix binaries are compiled...';

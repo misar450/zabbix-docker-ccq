@@ -2,8 +2,8 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5
 
 ARG MAJOR_VERSION=7.2
-ARG RELEASE=0
-ARG ZBX_VERSION=${MAJOR_VERSION}.0
+ARG RELEASE=1
+ARG ZBX_VERSION=${MAJOR_VERSION}.1
 
 ENV TERM=xterm \
     ZBX_VERSION=${ZBX_VERSION} \
@@ -31,6 +31,7 @@ LABEL description="Prepared environment to build Zabbix components" \
 COPY ["licenses", "/licenses"]
 
 RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
+    --mount=type=tmpfs,target=/var/cache/yum/ \
     --mount=type=bind,target=/run/secrets/,src=secrets/ \
     set -eux && \
     INSTALL_PKGS="autoconf \
@@ -82,5 +83,4 @@ RUN --mount=type=tmpfs,target=/var/lib/dnf/ \
             --setopt=keepcache=0 \
             --best \
             --setopt=tsflags=nodocs \
-        ${INSTALL_PKGS} && \
-    microdnf -y clean all
+        ${INSTALL_PKGS}
